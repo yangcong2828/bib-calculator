@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zengran BIB Solution Calculator v2 | 正远袋中袋方案速算器</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg-primary: #0a0e14;
+    --bg-secondary: #11161f;
+    --bg-tertiary: #1a2130;
+    --border: #2a3444;
+    --border-bright: #3a4657;
+    --text-primary: #e8ecf2;
+    --text-secondary: #8a95a8;
+    --text-dim: #5c6578;
+    --accent: #ff6b1a;
+    --accent-dim: #ff6b1a40;
+    --accent-glow: #ff6b1a20;
+    --accent-soft: #ff6b1a60;
+    --success: #4ade80;
+    --warning: #fbbf24;
+  }
+  
+  body {
+    font-family: 'Archivo', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 20% 10%, rgba(255, 107, 26, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(255, 107, 26, 0.05) 0%, transparent 40%),
+      linear-gradient(180deg, #0a0e14 0%, #0d1218 100%);
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .container {
+    max-width: 1520px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .logo-mark {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--bg-secondary);
+  }
+  
+  .logo-mark::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid var(--accent-dim);
+  }
+  
+  .logo-mark span {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  
+  .brand-text h1 {
+    font-family: 'Archivo Narrow', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  
+  .brand-text p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .lang-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+  
+  .lang-toggle button {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: #000;
+  }
+  
+  .lang-toggle button:not(.active):hover {
+    color: var(--text-primary);
+  }
+  
+  /* Title */
+  .title-section {
+    margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+  }
+  
+  .title-main h2 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+  
+  .title-main h2 .accent {
+    color: var(--accent);
+    font-style: italic;
+  }
+  
+  .title-main p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    max-width: 700px;
+    line-height: 1.5;
+  }
+  
+  .title-meta {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    line-height: 1.8;
+    text-transform: uppercase;
+  }
+  
+  .title-meta .version {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  
+  /* Main grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 32px;
+  }
+  
+  @media (max-width: 1200px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+  
+  /* Panel */
+  .panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+  }
+  
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 12px;
+    height: 12px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+  }
+  
+  .panel::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    border-bottom: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+  }
+  
+  .panel-section {
+    padding-bottom: 22px;
+    margin-bottom: 22px;
+    border-bottom: 1px dashed var(--border);
+  }
+  
+  .panel-section:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .section-title {
+    font-family: 'Archivo Narrow', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  
+  /* Input rows */
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  
+  .input-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  
+  .input-row:last-child, .input-row-3:last-child { margin-bottom: 0; }
+  
+  .input-group {
+    margin-bottom: 14px;
+  }
+  
+  .input-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  .input-label .label-text {
+    font-family: 'Archivo Narrow', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  
+  /* Preserve lowercase for dimension labels (a, b, c) */
+  .input-label .label-text.lc {
+    text-transform: none;
+  }
+  
+  .input-label .label-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  
+  .input-wrapper {
+    position: relative;
+  }
+  
+  .input-wrapper input {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    padding: 11px 44px 11px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    transition: all 0.2s;
+  }
+  
+  .input-wrapper input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 20px var(--accent-glow);
+  }
+  
+  .input-wrapper input:hover {
+    border-color: var(--border-bright);
+  }
+  
+  .input-wrapper .unit-tag {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+  }
+  
+  .input-wrapper.locked input {
+    background: var(--bg-tertiary);
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+  
+  /* Button selectors */
+  .btn-selector {
+    display: grid;
+    gap: 8px;
+  }
+  
+  .btn-selector.cols-2 { grid-template-columns: 1fr 1fr; }
+  
+  .sel-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    padding: 11px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  
+  .sel-btn:hover {
+    border-color: var(--border-bright);
+  }
+  
+  .sel-btn.active {
+    border-color: var(--accent);
+    background: var(--bg-tertiary);
+  }
+  
+  .sel-btn .btn-name {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+  
+  .sel-btn .btn-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  
+  .sel-btn.active .btn-meta {
+    color: var(--accent);
+  }
+  
+  /* Formula box */
+  .formula-box {
+    padding: 10px 12px;
+    background: var(--bg-primary);
+    border: 1px dashed var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-align: center;
+    letter-spacing: 0.03em;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  
+  .formula-box .accent { color: var(--accent); font-weight: 600; }
+  
+  /* Results panel */
+  .results-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  /* Hero result */
+  .hero-result {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-result::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent);
+  }
+  
+  .hero-result::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 28px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-metric {
+    border-left: 1px solid var(--border);
+    padding-left: 20px;
+  }
+  
+  .hero-metric:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+  
+  .hero-metric .metric-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  
+  .hero-metric .metric-value {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 800;
+    font-size: 40px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  
+  .hero-metric.primary .metric-value {
+    color: var(--accent);
+  }
+  
+  .hero-metric .metric-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+    .hero-metric { border-left: none; padding-left: 0; }
+    .hero-metric:nth-child(odd) { border-right: none; }
+  }
+  
+  /* Dimension panel - NEW */
+  .dim-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+  }
+  
+  @media (max-width: 900px) {
+    .dim-panel { grid-template-columns: 1fr; }
+  }
+  
+  .dim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    grid-column: 1 / -1;
+  }
+  
+  .dim-title {
+    font-family: 'Archivo Narrow', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  
+  .dim-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    background: var(--accent-glow);
+  }
+  
+  .dim-data {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .dim-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    position: relative;
+  }
+  
+  .dim-card.highlight {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+  }
+  
+  .dim-card .dim-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  
+  .dim-card .dim-name {
+    font-family: 'Archivo Narrow', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  
+  .dim-card.highlight .dim-name {
+    color: var(--accent);
+  }
+  
+  .dim-card .dim-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  
+  .dim-card .dim-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 20px;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+  }
+  
+  .dim-card.highlight .dim-value {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 22px;
+  }
+  
+  .dim-card .dim-formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    letter-spacing: 0.03em;
+  }
+  
+  /* SVG Stack visualization - engineering style */
+  .stack-viz-wrap {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 340px;
+    position: relative;
+  }
+  
+  .stack-viz-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  
+  .stack-svg {
+    width: 280px;
+    height: 280px;
+    display: block;
+  }
+  
+  .stack-svg .pouch-fill {
+    fill: rgba(255, 107, 26, 0.05);
+    stroke: none;
+  }
+  
+  .stack-svg .pouch-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.3;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  
+  .stack-svg .pouch-tail {
+    fill: rgba(255, 107, 26, 0.15);
+    stroke: var(--accent);
+    stroke-width: 1.1;
+    stroke-linejoin: round;
+  }
+  
+  .stack-svg .pouch-fill.remainder {
+    fill: rgba(251, 191, 36, 0.05);
+  }
+  
+  .stack-svg .pouch-line.remainder {
+    stroke: var(--warning);
+  }
+  
+  .stack-svg .pouch-tail.remainder {
+    fill: rgba(251, 191, 36, 0.15);
+    stroke: var(--warning);
+  }
+  
+  .stack-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--accent);
+    background: rgba(255,107,26,0.25);
+  }
+  
+  .legend-dot.remainder {
+    border-color: var(--warning);
+    background: rgba(251,191,36,0.25);
+  }
+  
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  
+  .stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 18px;
+    position: relative;
+    transition: all 0.3s;
+  }
+  
+  .stat-card:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+  }
+  
+  .stat-card .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  
+  .stat-card .stat-value {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+  
+  .stat-card .stat-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  
+  .stat-card .stat-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+  }
+  
+  /* Machine recommendation */
+  .machine-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+  }
+  
+  .machine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .machine-title {
+    font-family: 'Archivo Narrow', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  
+  .machine-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    background: var(--accent-glow);
+  }
+  
+  .machine-info h3 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  
+  .machine-info .machine-model {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  
+  .machine-specs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+  
+  @media (max-width: 700px) {
+    .machine-specs { grid-template-columns: 1fr 1fr; }
+  }
+  
+  .machine-spec {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  
+  .machine-spec .spec-label {
+    color: var(--text-dim);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  
+  .machine-spec .spec-val {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  
+  /* Info box */
+  .info-box {
+    padding: 14px 16px;
+    background: var(--bg-tertiary);
+    border-left: 3px solid var(--warning);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  
+  .info-box.success {
+    border-left-color: var(--success);
+  }
+  
+  .info-box.danger {
+    border-left-color: var(--accent);
+  }
+  
+  .info-box strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  
+  /* Footer */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  
+  .footer .sig { color: var(--accent); }
+  
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .reset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <div class="logo-mark"><span>Z</span></div>
+      <div class="brand-text">
+        <h1 data-zh="合肥正远智能包装" data-en="Hefei Zengran Intelligent Packaging">合肥正远智能包装</h1>
+        <p>BIB Solution Calculator · v2.0</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="lang-toggle">
+        <button id="langZh" class="active">中文</button>
+        <button id="langEn">EN</button>
+      </div>
+      <button class="reset-btn" id="resetBtn" data-zh="重置" data-en="Reset">重置</button>
+    </div>
+  </header>
+  
+  <!-- TITLE -->
+  <div class="title-section">
+    <div class="title-main">
+      <h2 data-zh="袋中袋<br>方案<span class=&quot;accent&quot;>速算器</span>" data-en="Bag-in-Bag<br>Solution <span class=&quot;accent&quot;>Calculator</span>">
+        袋中袋<br>方案<span class="accent">速算器</span>
+      </h2>
+      <p data-zh="输入小袋规格与堆叠配置，工程公式驱动输出垛型尺寸、空袋规格、产能与机型推荐。基于正远BIB产线实测数据。" data-en="Input pouch spec and stacking config. Engineering-formula driven output: stack dimensions, empty bag spec, capacity and machine match — based on Zengran BIB line field data.">
+        输入小袋规格与堆叠配置，工程公式驱动输出垛型尺寸、空袋规格、产能与机型推荐。基于正远BIB产线实测数据。
+      </p>
+    </div>
+    <div class="title-meta">
+      <div><span class="version">SYS 002</span> / CALC ENGINE</div>
+      <div id="timestamp">2026.04.22</div>
+      <div data-zh="工业级 · 精密包装" data-en="INDUSTRIAL · PRECISION">工业级 · 精密包装</div>
+    </div>
+  </div>
+  
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    
+    <!-- INPUT PANEL -->
+    <section class="panel">
+      
+      <!-- SECTION 1: POUCH SPEC -->
+      <div class="panel-section">
+        <div class="section-header">
+          <div class="section-title" data-zh="小袋规格" data-en="Pouch Spec">小袋规格</div>
+          <div class="section-num">01 / PRIMARY</div>
+        </div>
+        
+        <div class="input-group">
+          <div class="input-label">
+            <span class="label-text" data-zh="小袋重量" data-en="Pouch Weight">小袋重量</span>
+            <span class="label-unit">WEIGHT</span>
+          </div>
+          <div class="input-wrapper">
+            <input type="number" id="pouchWeight" value="500" min="0" step="10">
+            <span class="unit-tag">g</span>
+          </div>
+        </div>
+        
+        <div class="input-row-3">
+          <div>
+            <div class="input-label">
+              <span class="label-text lc" data-zh="长 a" data-en="Length a">长 a</span>
+              <span class="label-unit">LENGTH</span>
+            </div>
+            <div class="input-wrapper">
+              <input type="number" id="pouchA" value="220" min="10" step="5">
+              <span class="unit-tag">mm</span>
+            </div>
+          </div>
+          <div>
+            <div class="input-label">
+              <span class="label-text lc" data-zh="宽 b" data-en="Width b">宽 b</span>
+              <span class="label-unit">WIDTH</span>
+            </div>
+            <div class="input-wrapper">
+              <input type="number" id="pouchB" value="130" min="10" step="5">
+              <span class="unit-tag">mm</span>
+            </div>
+          </div>
+          <div>
+            <div class="input-label">
+              <span class="label-text lc" data-zh="厚 c" data-en="Thickness c">厚 c</span>
+              <span class="label-unit">THICKNESS</span>
+            </div>
+            <div class="input-wrapper">
+              <input type="number" id="pouchC" value="55" min="5" step="5">
+              <span class="unit-tag">mm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SECTION 2: STACKING -->
+      <div class="panel-section">
+        <div class="section-header">
+          <div class="section-title" data-zh="堆叠配置" data-en="Stacking Config">堆叠配置</div>
+          <div class="section-num">02 / STACK</div>
+        </div>
+        
+        <div class="input-group">
+          <div class="input-label">
+            <span class="label-text" data-zh="排列方式" data-en="Arrangement">排列方式</span>
+            <span class="label-unit">ORIENTATION</span>
+          </div>
+          <div class="btn-selector cols-2">
+            <button class="sel-btn active" data-arr="top-to-top">
+              <div class="btn-name" data-zh="头对头" data-en="Top-to-Top">头对头</div>
+              <div class="btn-meta" data-zh="长向展开 L=n×a" data-en="Length extends">长向展开 L=n×a</div>
+            </button>
+            <button class="sel-btn" data-arr="side-to-side">
+              <div class="btn-name" data-zh="肩靠肩" data-en="Side-to-Side">肩靠肩</div>
+              <div class="btn-meta" data-zh="宽向展开 L=n×b" data-en="Width extends">宽向展开 L=n×b</div>
+            </button>
+          </div>
+        </div>
+        
+        <div class="input-row">
+          <div>
+            <div class="input-label">
+              <span class="label-text" data-zh="每层数量 n" data-en="Per Layer · n">每层数量 n</span>
+              <span class="label-unit">PCS</span>
+            </div>
+            <div class="input-wrapper">
+              <input type="number" id="perLayer" value="5" min="1" step="1">
+              <span class="unit-tag">pcs</span>
+            </div>
+          </div>
+          <div>
+            <div class="input-label">
+              <span class="label-text" data-zh="总数量" data-en="Total Count">总数量</span>
+              <span class="label-unit">TOTAL</span>
+            </div>
+            <div class="input-wrapper">
+              <input type="number" id="totalCount" value="50" min="1" step="1">
+              <span class="unit-tag">pcs</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="formula-box">
+          <span data-zh="层数" data-en="Layers">层数</span> m = ⌈<span class="accent">总数</span> ÷ <span class="accent">每层</span>⌉
+          &nbsp;·&nbsp;
+          <span data-zh="余数层自动显示" data-en="Remainder layer auto-shown">余数层自动显示</span>
+        </div>
+      </div>
+      
+      <!-- SECTION 3: MATERIAL -->
+      <div class="panel-section">
+        <div class="section-header">
+          <div class="section-title" data-zh="大袋材质" data-en="Bag Material">大袋材质</div>
+          <div class="section-num">03 / MATERIAL</div>
+        </div>
+        <div class="btn-selector cols-2">
+          <button class="sel-btn active" data-material="film">
+            <div class="btn-name" data-zh="PE卷膜袋" data-en="PE Roll Film">PE卷膜袋</div>
+            <div class="btn-meta">100-120 PCS/MIN · HEAT SEAL</div>
+          </button>
+          <button class="sel-btn" data-material="woven">
+            <div class="btn-name" data-zh="PP编织袋" data-en="PP Woven">PP编织袋</div>
+            <div class="btn-meta">MAX 90 PCS/MIN · SEWING</div>
+          </button>
+        </div>
+      </div>
+      
+    </section>
+    
+    <!-- RESULTS -->
+    <section class="results-panel">
+      
+      <!-- Hero result -->
+      <div class="hero-result">
+        <div class="hero-grid">
+          <div class="hero-metric primary">
+            <div class="metric-label" data-zh="大袋重量" data-en="Bag Weight">大袋重量</div>
+            <div class="metric-value" id="heroBagWeight">25.0</div>
+            <div class="metric-unit">KG / BAG</div>
+          </div>
+          <div class="hero-metric">
+            <div class="metric-label" data-zh="总数量" data-en="Total Count">总数量</div>
+            <div class="metric-value" id="heroCount">50</div>
+            <div class="metric-unit" id="heroCountUnit">PCS / BAG</div>
+          </div>
+          <div class="hero-metric">
+            <div class="metric-label" data-zh="堆叠 n × m" data-en="Stack n × m">堆叠 n × m</div>
+            <div class="metric-value" id="heroStack">5 × 10</div>
+            <div class="metric-unit" id="heroStackUnit">FULL LAYERS</div>
+          </div>
+          <div class="hero-metric">
+            <div class="metric-label" data-zh="生产节拍" data-en="Throughput">生产节拍</div>
+            <div class="metric-value" id="heroSpeed">2.4</div>
+            <div class="metric-unit">BAGS / MIN</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Dimension panel -->
+      <div class="dim-panel">
+        <div class="dim-header">
+          <div class="dim-title" data-zh="垛型尺寸 + 空袋推荐规格" data-en="Stack Dimensions + Empty Bag Spec">垛型尺寸 + 空袋推荐规格</div>
+          <div class="dim-badge" id="dimBadge" data-zh="卷膜袋公式" data-en="FILM FORMULA">卷膜袋公式</div>
+        </div>
+        
+        <div class="dim-data">
+          <div class="dim-card">
+            <div class="dim-card-header">
+              <span class="dim-name" data-zh="理论垛型尺寸 A × B × H" data-en="Theoretical Stack A × B × H">理论垛型尺寸 A × B × H</span>
+              <span class="dim-sub" id="dimStackSub">L × W × H</span>
+            </div>
+            <div class="dim-value" id="dimStack">1,100 × 130 × 550 mm</div>
+            <div class="dim-formula" id="dimStackFormula">A = 5×220 · B = 130 · H = 10×55</div>
+          </div>
+          
+          <div class="dim-card">
+            <div class="dim-card-header">
+              <span class="dim-name" data-zh="实际叠放垛型 A₁ × B₁ × H₁" data-en="Actual Stack A₁ × B₁ × H₁">实际叠放垛型 A₁ × B₁ × H₁</span>
+              <span class="dim-sub" data-zh="含袋间重叠" data-en="With overlap">含袋间重叠</span>
+            </div>
+            <div class="dim-value" id="dimActual">1,028 × 130 × 550 mm</div>
+            <div class="dim-formula" id="dimActualFormula">A₁ = A − (n−1)×18 · B₁ = B · H₁ = H</div>
+          </div>
+          
+          <div class="dim-card highlight">
+            <div class="dim-card-header">
+              <span class="dim-name" data-zh="推荐空袋尺寸 A' × B' × H'" data-en="Empty Bag Spec A' × B' × H'">推荐空袋尺寸 A' × B' × H'</span>
+              <span class="dim-sub" id="dimEmptyMat">PE FILM</span>
+            </div>
+            <div class="dim-value" id="dimEmpty">1,028 × 130 × 835 mm</div>
+            <div class="dim-formula" id="dimEmptyFormula">A'=A−(n−1)×18 · B'=B · H'=1.1H+1.0B+100</div>
+          </div>
+        </div>
+        
+        <div class="stack-viz-wrap">
+          <div class="stack-viz-title" data-zh="垛型示意 · 工程视图" data-en="Stack Diagram · Engineering View">垛型示意 · 工程视图</div>
+          <svg class="stack-svg" id="stackSvg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="stack-legend">
+            <div class="legend-item">
+              <div class="legend-dot"></div>
+              <span data-zh="整层" data-en="Full layer">整层</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot remainder"></div>
+              <span data-zh="余数层" data-en="Remainder">余数层</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Stats grid -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label" data-zh="产能 / 小时" data-en="Output / Hour">产能 / 小时</div>
+          <div class="stat-value" id="statBagsHour">144</div>
+          <div class="stat-unit" data-zh="大袋 / 小时" data-en="bags / hour">大袋 / 小时</div>
+          <div class="stat-sub" id="statTonsHour">= 3.60 T/H</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-zh="班产 / 8H" data-en="Shift / 8H">班产 / 8H</div>
+          <div class="stat-value" id="statBagsShift">1,152</div>
+          <div class="stat-unit" data-zh="大袋 / 班" data-en="bags / shift">大袋 / 班</div>
+          <div class="stat-sub" id="statTonsShift">= 28.8 T/SHIFT</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-zh="小袋速度" data-en="Pouch Speed">小袋速度</div>
+          <div class="stat-value" id="statPouchSpeed">120</div>
+          <div class="stat-unit">PCS / MIN</div>
+          <div class="stat-sub" data-zh="设计上限" data-en="Design max">设计上限</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-zh="年产能 · 双班" data-en="Annual · 2-shift">年产能 · 双班</div>
+          <div class="stat-value" id="statAnnual">8,640</div>
+          <div class="stat-unit" data-zh="吨 / 年 · 300天" data-en="T/Y · 300D">吨 / 年 · 300天</div>
+          <div class="stat-sub" data-zh="理论最大" data-en="Theoretical max">理论最大</div>
+        </div>
+      </div>
+      
+      <!-- Machine recommendation -->
+      <div class="machine-panel">
+        <div class="machine-header">
+          <div class="machine-title" data-zh="推荐机型" data-en="Recommended Machine">推荐机型</div>
+          <div class="machine-badge" data-zh="最优匹配" data-en="BEST MATCH">最优匹配</div>
+        </div>
+        <div class="machine-info">
+          <h3 id="machineName">卷膜立式BIB二次包装机</h3>
+          <div class="machine-model" id="machineModel">ZR-VBIB-120 / VERTICAL ROLL-FILM TYPE</div>
+        </div>
+        <div class="machine-specs">
+          <div class="machine-spec">
+            <div class="spec-label" data-zh="封口方式" data-en="Sealing">封口方式</div>
+            <div class="spec-val" id="specSeal" data-zh="热合封口" data-en="Heat Seal">热合封口</div>
+          </div>
+          <div class="machine-spec">
+            <div class="spec-label" data-zh="投包机构" data-en="Drop Pack">投包机构</div>
+            <div class="spec-val" data-zh="伺服控制摆袋" data-en="Servo-drop pack">伺服控制摆袋</div>
+          </div>
+          <div class="machine-spec">
+            <div class="spec-label" data-zh="产线配置" data-en="Line Config">产线配置</div>
+            <div class="spec-val" data-zh="双层爬坡+缓存插板" data-en="Incline + buffer plate">双层爬坡+缓存插板</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Info box -->
+      <div class="info-box" id="infoBox">
+        <strong data-zh="方案提示：" data-en="Solution Note: ">方案提示：</strong>
+        <span id="infoText">当前方案匹配正远VBIB-120设计产能。</span>
+      </div>
+      
+    </section>
+    
+  </div>
+  
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div data-zh="合肥正远智能包装科技有限公司 · 2026" data-en="Hefei Zengran Intelligent Packaging Tech Co., Ltd · 2026">合肥正远智能包装科技有限公司 · 2026</div>
+    <div><span class="sig">⟶</span> CONFIDENTIAL · FOR CLIENT PRESENTATION</div>
+  </footer>
+
+</div>
+
+<script>
+  // =========== State ===========
+  const state = {
+    pouchWeight: 500,    // g
+    pouchA: 220,         // mm (length)
+    pouchB: 130,         // mm (width)
+    pouchC: 55,          // mm (height/thickness)
+    arrangement: 'top-to-top',  // 'top-to-top' | 'side-to-side'
+    perLayer: 5,         // n
+    totalCount: 50,      // total pcs
+    material: 'film',    // 'film' | 'woven'
+    lang: 'zh',
+  };
+  
+  // =========== Calculations ===========
+  function calculate() {
+    const { pouchWeight, pouchA, pouchB, pouchC, arrangement, perLayer, totalCount, material } = state;
+    
+    // Weight calc
+    const bagWeight = (pouchWeight * totalCount) / 1000;  // kg
+    
+    // Layer calc with remainder
+    const fullLayers = Math.floor(totalCount / perLayer);
+    const remainder = totalCount % perLayer;
+    const totalLayers = fullLayers + (remainder > 0 ? 1 : 0);
+    
+    // Stack dimensions (theoretical)
+    let A, B;
+    if (arrangement === 'top-to-top') {
+      // Length extends: L = n × a, W = b
+      A = perLayer * pouchA;
+      B = pouchB;
+    } else {
+      // Side-to-side: L = n × b, W = a
+      A = perLayer * pouchB;
+      B = pouchA;
+    }
+    const H = totalLayers * pouchC;
+    
+    // Actual stack dimensions (after horizontal overlap compression)
+    // A1 = A - (n-1) × 18mm  (overlap between adjacent pouches in a layer)
+    // B1 = B (no compression in width)
+    // H1 = H (no compression in height)
+    const HORIZONTAL_OVERLAP = 18;  // mm, engineering experience value
+    const A1 = A - (perLayer - 1) * HORIZONTAL_OVERLAP;
+    const B1 = B;
+    const H1 = H;
+    
+    // Empty bag dimensions
+    // A'= A − (n−1)×18  (same compression as A1)
+    // B' = B
+    // Woven: H'=1.1H+1.0B+50
+    // Film:  H'=1.1H+1.0B+100
+    const A2 = A - (perLayer - 1) * HORIZONTAL_OVERLAP;
+    const B2 = B;
+    const extraH = material === 'woven' ? 50 : 100;
+    const H2 = Math.round(1.1 * H + 1.0 * B + extraH);
+    
+    // Capacity calc
+    const pouchSpeedMax = material === 'film' ? 120 : 90;
+    let bagsPerMin = pouchSpeedMax / totalCount;
+    if (material === 'woven') bagsPerMin = Math.min(bagsPerMin, 6);
+    
+    const bagsPerHour = bagsPerMin * 60;
+    const tonsPerHour = (bagsPerHour * bagWeight) / 1000;
+    const bagsPerShift = bagsPerHour * 8;
+    const tonsPerShift = tonsPerHour * 8;
+    const annualTons = tonsPerHour * 16 * 300; // 2 shifts × 300 days
+    
+    return {
+      bagWeight,
+      fullLayers, remainder, totalLayers,
+      A, B, H, A1, B1, H1, A2, B2, H2,
+      pouchSpeedMax, bagsPerMin, bagsPerHour, tonsPerHour,
+      bagsPerShift, tonsPerShift, annualTons
+    };
+  }
+  
+  function recommendMachine(material) {
+    if (material === 'woven') {
+      return {
+        nameZh: '编织袋二次包装机',
+        nameEn: 'Woven Bag BIB Machine',
+        model: 'ZR-WBIB-90 / WOVEN PP BAG TYPE',
+        sealZh: '线缝封口',
+        sealEn: 'Thread Sewing'
+      };
+    }
+    return {
+      nameZh: '卷膜立式BIB二次包装机',
+      nameEn: 'Vertical Roll-Film BIB Machine',
+      model: 'ZR-VBIB-120 / VERTICAL ROLL-FILM TYPE',
+      sealZh: '热合封口',
+      sealEn: 'Heat Seal'
+    };
+  }
+  
+  // =========== SVG Stack Rendering (Engineering Diagram Style) ===========
+  // Draws pillow pouches in front-view with:
+  //   - Horizontal overlap (~18mm) between adjacent pouches in a layer (visual only)
+  //   - Vertical overlap between layers (pillow stacking compression)
+  //   - Remainder layer placed on TOP, centered horizontally
+  // Matches the engineering drawing style: each pouch is a lens/almond shape with
+  // vertical sealing tails at both ends.
+  function renderStack(result) {
+    const { pouchA, pouchB, pouchC, arrangement, perLayer } = state;
+    const { fullLayers, remainder } = result;
+    
+    const svg = document.getElementById('stackSvg');
+    svg.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    
+    // --- Determine pouch visual width based on arrangement ---
+    // top-to-top: length 'a' extends along X axis
+    // side-to-side: width 'b' extends along X axis
+    let pouchVisW_mm;
+    if (arrangement === 'top-to-top') {
+      pouchVisW_mm = pouchA;
+    } else {
+      pouchVisW_mm = pouchB;
+    }
+    
+    const totalLayers = fullLayers + (remainder > 0 ? 1 : 0);
+    
+    // --- Visual proportions ---
+    const bulgeFactor = 2.3;                      // pouch visual height = thickness × 2.3
+    const pouchVisH_mm = pouchC * bulgeFactor;
+    const layerOverlapRatio = 0.48;               // vertical overlap between layers
+    const layerStep_mm = pouchVisH_mm * layerOverlapRatio;
+    
+    // --- Horizontal overlap between adjacent pouches in a layer ---
+    // Fixed 18mm engineering experience value (visual only, not affecting formulas)
+    // Clamped to reasonable range: 10-25mm max, but not more than 25% of pouch width
+    const hOverlap_mm = Math.min(18, pouchVisW_mm * 0.2);
+    const pouchSpacing_mm = pouchVisW_mm - hOverlap_mm;  // distance between pouch centers
+    
+    // --- Total render dimensions ---
+    // Full layer width: first pouch full + (n-1) × spacing
+    const fullLayerW_mm = pouchVisW_mm + (perLayer - 1) * pouchSpacing_mm;
+    const totalRenderW = fullLayerW_mm;
+    const totalRenderH = pouchVisH_mm + (totalLayers - 1) * layerStep_mm;
+    
+    // --- Fit viewBox 300×300 ---
+    const viewW = 300, viewH = 300;
+    const padding = 24;
+    const scale = Math.min(
+      (viewW - padding * 2) / totalRenderW,
+      (viewH - padding * 2) / totalRenderH
+    );
+    
+    const scaledW = totalRenderW * scale;
+    const scaledH = totalRenderH * scale;
+    const startX = (viewW - scaledW) / 2;
+    const startY = (viewH - scaledH) / 2;
+    
+    const pouchW_s = pouchVisW_mm * scale;
+    const pouchH_s = pouchVisH_mm * scale;
+    const spacing_s = pouchSpacing_mm * scale;
+    const step_s = layerStep_mm * scale;
+    
+    /*
+     * Draw a single pouch: lens/almond shape with vertical sealing tails
+     * (cx, cy) = pouch center
+     */
+    function drawPouch(cx, cy, w, h, isRemainder) {
+      const cls = isRemainder ? ' remainder' : '';
+      const group = document.createElementNS(NS, 'g');
+      
+      const leftTip = cx - w/2;
+      const rightTip = cx + w/2;
+      const midY = cy;
+      const topBulgeY = cy - h/2;
+      const botBulgeY = cy + h/2;
+      
+      // Fill (lens shape)
+      const fillPath = document.createElementNS(NS, 'path');
+      fillPath.setAttribute('d',
+        `M ${leftTip},${midY} ` +
+        `Q ${cx},${topBulgeY} ${rightTip},${midY} ` +
+        `Q ${cx},${botBulgeY} ${leftTip},${midY} ` +
+        `Z`);
+      fillPath.setAttribute('class', 'pouch-fill' + cls);
+      group.appendChild(fillPath);
+      
+      // Top arc
+      const topArc = document.createElementNS(NS, 'path');
+      topArc.setAttribute('d',
+        `M ${leftTip},${midY} Q ${cx},${topBulgeY} ${rightTip},${midY}`);
+      topArc.setAttribute('class', 'pouch-line' + cls);
+      group.appendChild(topArc);
+      
+      // Bottom arc
+      const botArc = document.createElementNS(NS, 'path');
+      botArc.setAttribute('d',
+        `M ${leftTip},${midY} Q ${cx},${botBulgeY} ${rightTip},${midY}`);
+      botArc.setAttribute('class', 'pouch-line' + cls);
+      group.appendChild(botArc);
+      
+      // Sealing tails (vertical thin bars at both ends)
+      const tailW = w * 0.05;
+      const tailH = h * 0.4;
+      const tailY0 = midY - tailH/2;
+      const tailY1 = midY + tailH/2;
+      
+      const leftTail = document.createElementNS(NS, 'polygon');
+      leftTail.setAttribute('points',
+        `${leftTip - tailW},${tailY0} ${leftTip},${tailY0} ${leftTip},${tailY1} ${leftTip - tailW},${tailY1}`);
+      leftTail.setAttribute('class', 'pouch-tail' + cls);
+      group.appendChild(leftTail);
+      
+      const rightTail = document.createElementNS(NS, 'polygon');
+      rightTail.setAttribute('points',
+        `${rightTip},${tailY0} ${rightTip + tailW},${tailY0} ${rightTip + tailW},${tailY1} ${rightTip},${tailY1}`);
+      rightTail.setAttribute('class', 'pouch-tail' + cls);
+      group.appendChild(rightTail);
+      
+      svg.appendChild(group);
+    }
+    
+    // --- Draw all layers from bottom up ---
+    // Full layers at bottom (layer 0 to fullLayers-1), remainder layer ON TOP (highest index)
+    // Within each layer, horizontally CENTER the pouches (important for remainder layer to look right)
+    for (let layer = 0; layer < totalLayers; layer++) {
+      const isRemainderLayer = (layer === fullLayers) && remainder > 0;
+      const pouchesInLayer = isRemainderLayer ? remainder : perLayer;
+      
+      // Layer center Y: bottom layer at lowest screen Y, top layer at highest
+      const layerCy = startY + scaledH - pouchH_s/2 - layer * step_s;
+      
+      // Center this layer within the full-layer bounding box
+      // Layer actual width = pouchW + (pouchesInLayer-1) × spacing
+      const thisLayerW_s = pouchW_s + (pouchesInLayer - 1) * spacing_s;
+      const layerStartX = startX + (scaledW - thisLayerW_s) / 2;
+      
+      for (let i = 0; i < pouchesInLayer; i++) {
+        const pouchCx = layerStartX + pouchW_s/2 + i * spacing_s;
+        drawPouch(pouchCx, layerCy, pouchW_s, pouchH_s, isRemainderLayer);
+      }
+    }
+  }
+  
+  // =========== Render ===========
+  function formatNum(n, decimals = 0) {
+    if (n >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: decimals });
+    return n.toFixed(decimals);
+  }
+  
+  function render() {
+    const result = calculate();
+    const machine = recommendMachine(state.material);
+    const lang = state.lang;
+    
+    // Hero
+    document.getElementById('heroBagWeight').textContent = result.bagWeight.toFixed(1);
+    document.getElementById('heroCount').textContent = state.totalCount;
+    document.getElementById('heroCountUnit').textContent = lang === 'zh' ? '小袋 / 大袋' : 'PCS / BAG';
+    
+    const stackText = result.remainder > 0 
+      ? `${state.perLayer}×${result.fullLayers}+${result.remainder}` 
+      : `${state.perLayer} × ${result.fullLayers}`;
+    document.getElementById('heroStack').textContent = stackText;
+    document.getElementById('heroStackUnit').textContent = result.remainder > 0 
+      ? (lang === 'zh' ? '含余数层' : 'WITH REMAINDER')
+      : (lang === 'zh' ? '完整层' : 'FULL LAYERS');
+    
+    document.getElementById('heroSpeed').textContent = result.bagsPerMin.toFixed(1);
+    
+    // Dimensions
+    document.getElementById('dimStack').textContent = 
+      `${result.A.toLocaleString()} × ${result.B.toLocaleString()} × ${result.H.toLocaleString()} mm`;
+    
+    const arrLabel = state.arrangement === 'top-to-top' ? 'a' : 'b';
+    const arrLabelB = state.arrangement === 'top-to-top' ? 'b' : 'a';
+    document.getElementById('dimStackFormula').textContent = 
+      `A = ${state.perLayer}×${state.arrangement === 'top-to-top' ? state.pouchA : state.pouchB} · B = ${state.arrangement === 'top-to-top' ? state.pouchB : state.pouchA} · H = ${result.totalLayers}×${state.pouchC}`;
+    
+    // Actual stack dimensions (with horizontal overlap)
+    document.getElementById('dimActual').textContent = 
+      `${result.A1.toLocaleString()} × ${result.B1.toLocaleString()} × ${result.H1.toLocaleString()} mm`;
+    document.getElementById('dimActualFormula').textContent = 
+      `A₁ = ${result.A} − (${state.perLayer}−1)×18 = ${result.A1} · B₁ = ${result.B1} · H₁ = ${result.H1}`;
+    
+    document.getElementById('dimEmpty').textContent = 
+      `${result.A2.toLocaleString()} × ${result.B2.toLocaleString()} × ${result.H2.toLocaleString()} mm`;
+    
+    const extraH = state.material === 'woven' ? 50 : 100;
+    document.getElementById('dimEmptyFormula').textContent = 
+      `A'=A−(n−1)×18 · B'=B · H'=1.1H+1.0B+${extraH}`;
+    
+    // Material badge
+    document.getElementById('dimBadge').textContent = state.material === 'film'
+      ? (lang === 'zh' ? '卷膜袋公式' : 'FILM FORMULA')
+      : (lang === 'zh' ? '编织袋公式' : 'WOVEN FORMULA');
+    document.getElementById('dimEmptyMat').textContent = state.material === 'film' ? 'PE FILM' : 'PP WOVEN';
+    
+    // Stats
+    document.getElementById('statBagsHour').textContent = formatNum(Math.floor(result.bagsPerHour));
+    document.getElementById('statTonsHour').textContent = `= ${result.tonsPerHour.toFixed(2)} T/H`;
+    document.getElementById('statBagsShift').textContent = formatNum(Math.floor(result.bagsPerShift));
+    document.getElementById('statTonsShift').textContent = `= ${result.tonsPerShift.toFixed(1)} T/SHIFT`;
+    document.getElementById('statPouchSpeed').textContent = result.pouchSpeedMax;
+    document.getElementById('statAnnual').textContent = formatNum(Math.floor(result.annualTons));
+    
+    // Machine
+    document.getElementById('machineName').textContent = lang === 'zh' ? machine.nameZh : machine.nameEn;
+    document.getElementById('machineModel').textContent = machine.model;
+    document.getElementById('specSeal').textContent = lang === 'zh' ? machine.sealZh : machine.sealEn;
+    
+    // Info box
+    const infoBox = document.getElementById('infoBox');
+    const infoText = document.getElementById('infoText');
+    infoBox.className = 'info-box';
+    
+    let msg;
+    if (result.bagWeight > 50) {
+      infoBox.classList.add('danger');
+      msg = lang === 'zh' 
+        ? `大袋重量 ${result.bagWeight.toFixed(1)}kg 超过50kg，建议改用编织袋+线缝封口。下游需加装搬运辅助或直接对接码垛机。`
+        : `Bag weight ${result.bagWeight.toFixed(1)}kg exceeds 50kg. Switch to woven bag + thread sewing. Downstream needs handling aid or direct palletizer integration.`;
+    } else if (result.remainder > 0) {
+      // No additional class needed, keep default info-box styling
+      msg = lang === 'zh' 
+        ? `当前配置含余数层：前 ${result.fullLayers} 层每层 ${state.perLayer} 包，顶层 ${result.remainder} 包。伺服投包机构可精确控制余数层位置。垛型高度 H = ${result.totalLayers} × ${state.pouchC} = ${result.H}mm。`
+        : `Config includes remainder: ${result.fullLayers} full layers of ${state.perLayer} pouches + top layer of ${result.remainder}. Servo drop-pack mechanism precisely places remainder layer. Stack H = ${result.totalLayers} × ${state.pouchC} = ${result.H}mm.`;
+    } else if (state.material === 'woven' && result.bagsPerMin >= 6) {
+      infoBox.classList.add('success');
+      msg = lang === 'zh'
+        ? `已达到编织袋BIB机设计上限 6 大袋/分钟。如需更高产能，建议升级为卷膜立式方案或双线并行。`
+        : `Reached woven BIB design cap of 6 bags/min. For higher output, consider vertical roll-film solution or dual-line parallel.`;
+    } else if (result.bagsPerMin < 1.5) {
+      infoBox.classList.add('success');
+      msg = lang === 'zh'
+        ? `每大袋 ${state.totalCount} 包数量较多，机器有富余产能。可考虑加入缓存插板确保节拍稳定。`
+        : `High count per bag (${state.totalCount}) — machine has capacity headroom. Buffer plate recommended for stable rhythm.`;
+    } else {
+      msg = lang === 'zh'
+        ? `当前方案 ${result.bagWeight.toFixed(0)}kg 大袋匹配正远${machine.model.split(' /')[0]}设计产能。空袋尺寸 ${result.A2}×${result.B2}×${result.H2}mm 可直接报价制袋厂。`
+        : `Current ${result.bagWeight.toFixed(0)}kg bag matches Zengran ${machine.model.split(' /')[0]} design capacity. Empty bag spec ${result.A2}×${result.B2}×${result.H2}mm can be directly quoted to bag supplier.`;
+    }
+    infoText.textContent = msg;
+    
+    // Stack diagram
+    renderStack(result);
+    
+    // Language
+    applyLanguage();
+  }
+  
+  function applyLanguage() {
+    document.querySelectorAll('[data-zh]').forEach(el => {
+      if (['heroCountUnit','heroStackUnit','machineName','specSeal','infoText','dimBadge','dimEmptyMat'].includes(el.id)) return;
+      const text = state.lang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+      if (text) el.innerHTML = text;
+    });
+    document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
+  }
+  
+  // =========== Event handlers ===========
+  function bindNumInput(id, key, min = 0) {
+    document.getElementById(id).addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      if (!isNaN(v) && v >= min) {
+        state[key] = v;
+        render();
+      }
+    });
+  }
+  
+  bindNumInput('pouchWeight', 'pouchWeight', 0);
+  bindNumInput('pouchA', 'pouchA', 10);
+  bindNumInput('pouchB', 'pouchB', 10);
+  bindNumInput('pouchC', 'pouchC', 5);
+  bindNumInput('perLayer', 'perLayer', 1);
+  bindNumInput('totalCount', 'totalCount', 1);
+  
+  document.querySelectorAll('[data-arr]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-arr]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.arrangement = btn.dataset.arr;
+      render();
+    });
+  });
+  
+  document.querySelectorAll('[data-material]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-material]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.material = btn.dataset.material;
+      render();
+    });
+  });
+  
+  document.getElementById('langZh').addEventListener('click', () => {
+    state.lang = 'zh';
+    document.getElementById('langZh').classList.add('active');
+    document.getElementById('langEn').classList.remove('active');
+    render();
+  });
+  
+  document.getElementById('langEn').addEventListener('click', () => {
+    state.lang = 'en';
+    document.getElementById('langEn').classList.add('active');
+    document.getElementById('langZh').classList.remove('active');
+    render();
+  });
+  
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    Object.assign(state, {
+      pouchWeight: 500, pouchA: 220, pouchB: 130, pouchC: 55,
+      arrangement: 'top-to-top', perLayer: 5, totalCount: 50,
+      material: 'film'
+    });
+    document.getElementById('pouchWeight').value = 500;
+    document.getElementById('pouchA').value = 220;
+    document.getElementById('pouchB').value = 130;
+    document.getElementById('pouchC').value = 55;
+    document.getElementById('perLayer').value = 5;
+    document.getElementById('totalCount').value = 50;
+    document.querySelectorAll('[data-arr]').forEach(b => {
+      b.classList.toggle('active', b.dataset.arr === 'top-to-top');
+    });
+    document.querySelectorAll('[data-material]').forEach(b => {
+      b.classList.toggle('active', b.dataset.material === 'film');
+    });
+    render();
+  });
+  
+  // Timestamp
+  const now = new Date();
+  const ts = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  document.getElementById('timestamp').textContent = ts;
+  
+  // Initial render
+  render();
+</script>
+
+</body>
+</html>
