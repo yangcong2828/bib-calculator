@@ -25,13 +25,14 @@ Input pouch specifications and stacking configuration, get instant engineering o
 
 ## Stack diagram engine / 垛型示意引擎
 
-The calculator renders an engineering-style stack diagram with:
+The calculator renders an interactive 3D stack (three.js r128) with:
 
-- Pillow-pouch lens shape with vertical sealing tails
-- Horizontal overlap (18mm) between adjacent pouches in a layer
-- Vertical compression between stacked layers
-- Remainder layer placement (on top, horizontally centered)
-- Real-time response to all parameter changes
+- Physically-derived pillow-pouch geometry (film-perimeter conservation + gravity flattening, reverse-solved from photos)
+- 18mm overlap between adjacent pouches — the drawn envelope equals A₁ × B₁ × H₁, with dimension lines
+- Side-to-side: crimp fins alternate up/down; top-to-top: facing seals overlap and both ends flatten
+- Remainder layer on top, centered, highlighted in amber
+- ISO / front / side / top views, drag to orbit, auto-framing on every parameter change
+- Falls back to the 2D SVG diagram if WebGL or the CDN is unavailable
 
 ---
 

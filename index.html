@@ -526,8 +526,8 @@
     border: 1px solid var(--border);
     padding: 28px;
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 32px;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    gap: 28px;
   }
   
   @media (max-width: 900px) {
@@ -632,29 +632,105 @@
   .stack-viz-wrap {
     background: var(--bg-primary);
     border: 1px solid var(--border);
-    padding: 20px;
+    padding: 14px 16px 12px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     min-height: 340px;
+    min-width: 0;
     position: relative;
   }
-  
+
+  .stack-viz-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
   .stack-viz-title {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     color: var(--text-dim);
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    margin-bottom: 12px;
-    text-align: center;
   }
-  
+
+  .view-bar {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .view-bar button {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 4px 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .view-bar button:hover { border-color: var(--border-bright); color: var(--text-primary); }
+  .view-bar button.on { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  /* 3D stage */
+  .stack-stage {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    cursor: grab;
+  }
+
+  .stack-stage:active { cursor: grabbing; }
+  .stack-stage canvas { display: block; width: 100%; height: 100%; }
+
+  .dim-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .dim-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(10, 14, 20, 0.86);
+    border: 1px solid var(--accent-dim);
+    padding: 2px 6px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .stack-note {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--warning);
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 900px) {
+    .stack-stage { height: 320px; }
+  }
+
+  /* 2D fallback (shown only when WebGL / three.js is unavailable) */
   .stack-svg {
     width: 280px;
     height: 280px;
-    display: block;
+    display: none;
+    margin: 0 auto;
   }
   
   .stack-svg .pouch-fill {
@@ -690,10 +766,25 @@
     stroke: var(--warning);
   }
   
+  .stack-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .stack-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
   .stack-legend {
     display: flex;
     gap: 16px;
-    margin-top: 14px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     color: var(--text-dim);
@@ -710,12 +801,12 @@
     width: 10px;
     height: 10px;
     border: 1.5px solid var(--accent);
-    background: rgba(255,107,26,0.25);
+    background: #e6e9ee;
   }
-  
+
   .legend-dot.remainder {
     border-color: var(--warning);
-    background: rgba(251,191,36,0.25);
+    background: var(--warning);
   }
   
   /* Stats row */
@@ -1156,17 +1247,33 @@
         </div>
         
         <div class="stack-viz-wrap">
-          <div class="stack-viz-title" data-zh="垛型示意 · 工程视图" data-en="Stack Diagram · Engineering View">垛型示意 · 工程视图</div>
+          <div class="stack-viz-head">
+            <div class="stack-viz-title" data-zh="垛型示意 · 工程视图" data-en="Stack Diagram · Engineering View">垛型示意 · 工程视图</div>
+            <div class="view-bar" id="viewBar">
+              <button data-cam="iso" class="on" data-zh="3/4 视角" data-en="ISO">3/4 视角</button>
+              <button data-cam="front" data-zh="正视" data-en="FRONT">正视</button>
+              <button data-cam="side" data-zh="侧视" data-en="SIDE">侧视</button>
+              <button data-cam="top" data-zh="俯视" data-en="TOP">俯视</button>
+              <button id="spinBtn" data-zh="自动旋转" data-en="SPIN">自动旋转</button>
+            </div>
+          </div>
+          <div class="stack-stage" id="stackStage">
+            <div class="dim-labels" id="dimLabels"></div>
+            <div class="stack-note" id="stackNote"></div>
+          </div>
           <svg class="stack-svg" id="stackSvg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"></svg>
-          <div class="stack-legend">
-            <div class="legend-item">
-              <div class="legend-dot"></div>
-              <span data-zh="整层" data-en="Full layer">整层</span>
+          <div class="stack-foot">
+            <div class="stack-legend">
+              <div class="legend-item">
+                <div class="legend-dot"></div>
+                <span data-zh="整层" data-en="Full layer">整层</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot remainder"></div>
+                <span data-zh="余数层" data-en="Remainder">余数层</span>
+              </div>
             </div>
-            <div class="legend-item">
-              <div class="legend-dot remainder"></div>
-              <span data-zh="余数层" data-en="Remainder">余数层</span>
-            </div>
+            <div class="stack-hint" id="stackHint" data-zh="拖拽旋转 · 尺寸线 = A₁ × B₁ × H₁" data-en="Drag to orbit · dimensions = A₁ × B₁ × H₁">拖拽旋转 · 尺寸线 = A₁ × B₁ × H₁</div>
           </div>
         </div>
       </div>
@@ -1243,6 +1350,8 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
   // =========== State ===========
   const state = {
@@ -1340,14 +1449,556 @@
     };
   }
   
-  // =========== SVG Stack Rendering (Engineering Diagram Style) ===========
+  // =========== 3D Stack Rendering ===========
+  // 单包几何移植自 Create3Dpouch/_build/template.html（按实拍照片反解的枕式袋物理模型：薄膜周长守恒 + 重力压平），
+  // 码放规则移植自 Create3Dpouch/pouch_stack_viewer.html（已验收）：
+  //   - 肩靠肩：袋身贴袋身，相邻封口条一上一下交替搭叠
+  //   - 头对头：相邻包封口相对，搭叠处两包端部互相压扁，不会顶到上一层
+  //   - 余数层放在顶层，按本层实际包数以垛形中线居中
+  // 与上方公式保持一致：相邻包中心距 = 包长(宽) − 18mm，层高 = c，因此包络尺寸正好是 A₁ × B₁ × H₁。
+  // 薄膜贴图为程序生成的中性图案（不使用任何客户品牌照片）。three.js / WebGL 不可用时退回下方 2D SVG 示意。
+  const Stack3D = (() => {
+    if (!window.THREE || !THREE.OrbitControls) return null;
+    const stage = document.getElementById('stackStage');
+    let rdr;
+    try { rdr = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return null; }
+
+    // ↓↓↓ 以下 1–3 节原样复制自 Create3Dpouch/_build/template.html（单包几何的唯一真源，改那边后需同步到这里） ↓↓↓
+    /* ================= 1. 尺寸（全部以袋身长度 Lb = 1 为单位，来自实拍照片测量） ================= */
+    const P = {
+      Lb: 1.00,     // 袋身长度（两道横封之间）
+      Wf: 0.905,    // 薄膜压平宽度 = 横封条宽度（校正后正面照：封口宽/中段宽 = 896/808 = 1.11，中段宽 0.815 → 0.905）
+      T: 0.21,      // 最大厚度（长边侧面照 0.18–0.21；与周长守恒 + 上面两个宽度共同反解）
+      FH: 0.105,    // 横封条高度（正面照 50–55px / 510px）
+      nUp: 2.4,     // 朝上一侧半截面的超椭圆指数（自然鼓起；越圆，同样薄膜周长能撑出的厚度越大）
+      nDown: 3.2,   // 贴桌一侧半截面（被重力压平）。三项照片测量同时满足：中段宽 0.815、封口/袋身 1.111、厚 0.21
+      nEnd: 1.7,    // 靠近横封处截面变成两侧尖薄的透镜形 → 四角是扁平的三角"耳朵"
+      sag: 0.5,     // 重力下沉：各截面中心线向桌面下沉 sag·(T/2 − 半厚)，收口都发生在上表面，横封落在偏下高度
+      p: 5.0, q: 0.4,           // 长度方向厚度曲线 t(s)=T·(1-|s|^p)^q：中段平顶，两端是"钝头"（端面原图中封口条从高高的端面中间伸出）
+      finT: 0.0035,             // 横封条两层薄膜厚度
+      sealW: 0.035, sealX: -0.083, // 背封（纵封）宽度与位置（背面照测得偏右 0.09W → 模型 x 取负）
+      wrinkle: 0.0045,          // 收口区的薄膜褶皱幅度
+      droop: 0.12,              // 横封条向桌面耷拉 ≈7°（端面原图中封口条基本水平）
+      NS: 140, NU: 200          // 网格细分
+    };
+    const Ltot = P.Lb + 2 * P.FH;
+
+    /* ================= 2. 物理模型：薄膜周长守恒 + 重力 =================
+       枕式袋 = 一段压平宽度为 Wf 的薄膜筒，周长恒为 2·Wf（薄膜不可拉伸）。
+       某截面被内容物撑到厚度 t 时，截面宽度 w 必须收窄以保持周长不变——
+       这就自动产生了真实袋子的"腰身"（中段变窄），以及靠近横封处宽度回到 Wf 的"狗耳角"。
+       平放在桌上时，贴桌一侧被压平（nDown 更大），截面中心线随厚度变薄而下沉（sag）。 */
+    function blendN(s, n0) {               // 截面指数沿长度方向：|s|<0.55 为中段值，之后平滑过渡到端部透镜形
+      const k = Math.min(1, Math.max(0, (Math.abs(s) - 0.55) / 0.45)), e = k * k * (3 - 2 * k);
+      return n0 + (P.nEnd - n0) * e;
+    }
+    function sePt(a, b, th, n) {
+      const c = Math.cos(th), s = Math.sin(th);
+      return [a * Math.sign(c) * Math.pow(Math.abs(c), 2 / n), b * Math.sign(s) * Math.pow(Math.abs(s), 2 / n)];
+    }
+    function halfPerim(a, b, n) {          // θ∈[0,π] 半圈周长
+      let L = 0, px = 0, pz = 0;
+      for (let i = 0; i <= 256; i++) {
+        const [x, z] = sePt(a, b, Math.PI * i / 256, n);
+        if (i) L += Math.hypot(x - px, z - pz);
+        px = x; pz = z;
+      }
+      return L;
+    }
+    function halfWidth(b, nU, nD) {        // 给定半厚 b，求满足 上半周 + 下半周 = 2Wf 的半宽 a
+      if (b < 1e-7) return P.Wf / 2;
+      let lo = 0, hi = P.Wf / 2;
+      for (let k = 0; k < 44; k++) { const m = (lo + hi) / 2; (halfPerim(m, b, nU) + halfPerim(m, b, nD) > 2 * P.Wf) ? hi = m : lo = m; }
+      return (lo + hi) / 2;
+    }
+    function thick(s) { return P.T * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(s), P.p)), P.q); }
+
+    /* ================= 3. 生成网格 ================= */
+    function uvFront(x, y) { return [(x + P.Wf / 2) / P.Wf, (y + Ltot / 2) / Ltot]; }
+    function uvBack(x, y)  { return [(P.Wf / 2 - x) / P.Wf, (y + Ltot / 2) / Ltot]; } // 绕长轴翻面拍摄 → 左右镜像
+    // 袋身贴图：中段沿用平面投影（已与照片轮廓吻合）；靠近横封的耳角处袋身宽度趋于满幅，
+    // 而照片里那里的角是往里折的——把映射范围平滑内收 6%，避免采样到照片里的桌面
+    function earK(y) { const s = Math.abs(y) / (P.Lb / 2), k = Math.min(1, Math.max(0, (s - 0.6) / 0.4)); return 1 - 0.06 * k * k * (3 - 2 * k); }
+    function uvBodyFront(x, y) { return [0.5 + x / P.Wf * earK(y), (y + Ltot / 2) / Ltot]; }
+    function uvBodyBack(x, y)  { return [0.5 - x / P.Wf * earK(y), (y + Ltot / 2) / Ltot]; }
+
+    function smoothNormals(geo) {          // 位置相同的顶点共用法线，消除正/背面接缝处的折痕
+      geo.computeVertexNormals();
+      const pos = geo.attributes.position, nor = geo.attributes.normal, map = new Map();
+      for (let i = 0; i < pos.count; i++) {
+        const k = pos.getX(i).toFixed(5) + ',' + pos.getY(i).toFixed(5) + ',' + pos.getZ(i).toFixed(5);
+        if (!map.has(k)) map.set(k, []);
+        map.get(k).push(i);
+      }
+      for (const ids of map.values()) {
+        if (ids.length < 2) continue;
+        let x = 0, y = 0, z = 0;
+        for (const i of ids) { x += nor.getX(i); y += nor.getY(i); z += nor.getZ(i); }
+        const l = Math.hypot(x, y, z) || 1;
+        for (const i of ids) nor.setXYZ(i, x / l, y / l, z / l);
+      }
+      nor.needsUpdate = true;
+    }
+    function mkGeo(pos, uv, idx, groups) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      g.setIndex(idx);
+      if (groups) groups.forEach(([st, cnt, m]) => g.addGroup(st, cnt, m));
+      return g;
+    }
+
+    // D = 贴桌方向（局部 z）：-1 = 背面贴桌（正面朝上），+1 = 正面贴桌（背面朝上）
+    function makeSlices(D) {
+      const S = [];
+      for (let i = 0; i <= P.NS; i++) { const l = -1 + 2 * i / P.NS; S.push(Math.sin(l * Math.PI / 2)); } // 收口区网格更密
+      return S.map(s => {
+        const b = thick(s) / 2, nU = blendN(s, P.nUp), nD = blendN(s, P.nDown);
+        return { s, y: s * P.Lb / 2, b, nU, nD, D, a: halfWidth(b, nU, nD), zc: D * P.sag * (P.T / 2 - b) };
+      });
+    }
+
+    function buildBody(slices) {
+      const D = slices[0].D, pos = [], uv = [], idx = [], groups = [], half = P.NU / 2, zcs = [];
+      // 正面半圈 θ∈[0,π]（z≥0 一侧），背面半圈 θ∈[π,2π]，各自一组顶点以便用不同贴图
+      for (const side of [0, 1]) {
+        const base = pos.length / 3;
+        const isUp = (side === 0) === (D < 0);           // 这一半是否朝上
+        for (const sl of slices) {
+          const env = Math.pow(Math.max(0, (Math.abs(sl.s) - 0.55) / 0.45), 1.6) * (1 - Math.abs(sl.s)) * 4; // 收口区褶皱包络
+          const n = isUp ? sl.nU : sl.nD;
+          for (let j = 0; j <= half; j++) {
+            const th = Math.PI * (side + j / half);
+            let [x, z] = sePt(sl.a, sl.b, th, n);
+            const face = Math.pow(Math.abs(Math.sin(th)), 1.5);
+            // 收口区薄膜被挤压形成的褶皱（只在朝上的大面上；贴桌面保持平整）
+            if (isUp) z += Math.sign(z) * P.wrinkle * env * face * Math.sin(x * 61 + sl.s * 9) * Math.sin(x * 23 + 1.3);
+            z += sl.zc;
+            pos.push(x, sl.y, z); zcs.push(sl.zc);
+            uv.push(...(side ? uvBodyBack(x, sl.y) : uvBodyFront(x, sl.y)));
+          }
+        }
+        const cols = half + 1, start = idx.length;
+        for (let i = 0; i < slices.length - 1; i++)
+          for (let j = 0; j < half; j++) {
+            const a = base + i * cols + j, b = a + 1, c = a + cols, d = c + 1;
+            idx.push(a, c, b, b, c, d);
+          }
+        groups.push([start, idx.length - start, side]);
+      }
+      const g = mkGeo(pos, uv, idx, groups);
+      smoothNormals(g);
+      // 侧面板贴图：只作用在袋身陡峭的侧壁上（按法线 x 分量平滑过渡），坐标绑定在薄膜上
+      const nor = g.attributes.normal, n = pos.length / 3, sUv = new Float32Array(n * 2), sW = new Float32Array(n), sSel = new Float32Array(n);
+      const sm = (e0, e1, v) => { const k = Math.min(1, Math.max(0, (v - e0) / (e1 - e0))); return k * k * (3 - 2 * k); };
+      for (let i = 0; i < n; i++) {
+        const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2], s = y / (P.Lb / 2);
+        sUv[i * 2] = x > 0 ? (y + P.Lb / 2) / P.Lb : (P.Lb / 2 - y) / P.Lb;
+        sSel[i] = x > 0 ? 0 : 1;          // +x 侧：孟加拉文侧面板；-x 侧：英文侧面板（与实拍一致）
+        sUv[i * 2 + 1] = 0.5 + (z - zcs[i]) / P.T;
+        sW[i] = sm(0.55, 0.9, Math.abs(nor.getX(i))) * (1 - sm(0.88, 0.98, Math.abs(s)));
+      }
+      g.setAttribute('aSideUv', new THREE.BufferAttribute(sUv, 2));
+      g.setAttribute('aSideW', new THREE.BufferAttribute(sW, 1));
+      g.setAttribute('aSideSel', new THREE.BufferAttribute(sSel, 1));
+      return g;
+    }
+
+    // 横封条：两层薄膜，带波浪起伏和齿形切口（齿形直接做在几何上）。
+    // 几何建在"枢轴局部坐标"里（原点 = 横封根部），以便整条封口绕根部耷拉。
+    function finWave(x, sign, f) {
+      return 0.010 * Math.pow(f, 1.4) * Math.sin(x * 21 + (sign > 0 ? 0.6 : 2.1))
+           + 0.004 * Math.pow(f, 2) * Math.sin(x * 57);
+    }
+    function buildFin(sign, layer) {
+      const NX = 180, NY = 10, tooth = 0.006, pos = [], uv = [], idx = [];
+      for (let i = 0; i <= NY; i++) {
+        const f = i / NY;
+        for (let j = 0; j <= NX; j++) {
+          const x = -P.Wf / 2 + P.Wf * j / NX;
+          let yy = P.FH * f;
+          if (i === NY && j % 2 === 1) yy -= tooth;                         // 齿尖/齿根交替
+          pos.push(x, sign * yy, layer * P.finT / 2 + finWave(x, sign, f));
+          const yAbs = sign * (P.Lb / 2 + yy);
+          uv.push(...(layer > 0 ? uvFront(x, yAbs) : uvBack(x, yAbs)));
+        }
+      }
+      for (let i = 0; i < NY; i++) for (let j = 0; j < NX; j++) {
+        const a = i * (NX + 1) + j, b = a + 1, c = a + NX + 1, d = c + 1;
+        if ((sign > 0) === (layer > 0)) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
+      }
+      const g = mkGeo(pos, uv, idx); g.computeVertexNormals();
+      return g;
+    }
+
+    // 背面纵封：一条压平贴在背面（局部 -z 一侧）的窄封条。
+    // 传 slices → 袋身段（贴合背面曲面）；否则 part = ±1 → 上/下横封段（枢轴局部坐标，贴合封口波浪）
+    function buildBackSeal(slices, part) {
+      const pos = [], uv = [], idx = [], xs = [-1, -0.5, 0, 0.5, 1].map(k => P.sealX + k * P.sealW / 2);
+      const rows = [];
+      if (slices) {
+        const backIsUp = slices[0].D > 0;
+        for (const sl of slices) rows.push({ y: sl.y, yAbs: sl.y, a: sl.a, z: x => {
+          const n = backIsUp ? sl.nU : sl.nD;
+          return sl.zc - sl.b * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(x / sl.a), n)), 1 / n) - 0.0016; } });
+      } else {
+        for (let i = 0; i <= 8; i++) {
+          const f = i / 8 * 0.97, yy = P.FH * f;
+          rows.push({ y: part * yy, yAbs: part * (P.Lb / 2 + yy), z: x => -P.finT / 2 - 0.0016 + finWave(x, part, f) });
+        }
+      }
+      rows.sort((r1, r2) => r1.y - r2.y);
+      rows.forEach(r => xs.forEach(x => { pos.push(x, r.y, r.z(x)); uv.push(...(r.a ? uvBodyBack(x, r.yAbs) : uvBack(x, r.yAbs))); }));
+      const C = xs.length;
+      for (let i = 0; i < rows.length - 1; i++) for (let j = 0; j < C - 1; j++) {
+        const a = i * C + j, b = a + 1, c = a + C, d = c + 1;
+        idx.push(a, b, c, b, d, c);
+      }
+      const g = mkGeo(pos, uv, idx); g.computeVertexNormals();
+      return g;
+    }
+    // ↑↑↑ 复制结束 ↑↑↑
+
+    P.NS = 64; P.NU = 80;               // 叠放时单包网格降细分，上千包也流畅
+    const OVERLAP = 18;                 // mm，与 A₁ = A − (n−1)×18 中的 18 相同
+    const MAXN = 1500;                  // 最多绘制的小袋数
+    const ACCENT = 0xff6b1a, AMBER = 0xfbbf24, BG = 0x0a0e14;
+    const lin = hex => new THREE.Color(hex).convertSRGBToLinear();
+    let dirty = true, ready = false;
+
+    /* ---------- 渲染器 / 场景 ---------- */
+    rdr.setPixelRatio(Math.min(devicePixelRatio, 2));
+    rdr.outputEncoding = THREE.sRGBEncoding;
+    rdr.toneMapping = THREE.ACESFilmicToneMapping;
+    rdr.shadowMap.enabled = true; rdr.shadowMap.type = THREE.PCFSoftShadowMap;
+    stage.insertBefore(rdr.domElement, stage.firstChild);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(BG, 1, 2);            // 远处网格淡入页面背景色
+    const cam = new THREE.PerspectiveCamera(30, 1, 1, 1e6);
+    const ctrl = new THREE.OrbitControls(cam, rdr.domElement);
+    ctrl.enableDamping = true; ctrl.dampingFactor = 0.08; ctrl.autoRotateSpeed = 1.2;
+    ctrl.enableZoom = false; ctrl.enablePan = false;  // 不拦截页面滚动；取景随参数自动适配
+    ctrl.maxPolarAngle = Math.PI * 0.495;
+
+    scene.add(new THREE.HemisphereLight(0xe8eef6, 0x1a2130, 0.75));
+    const key = new THREE.DirectionalLight(0xffffff, 0.95);
+    key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 4; key.shadow.bias = -0.0006;
+    const fill = new THREE.DirectionalLight(0xc8d6ff, 0.3);
+    const rim = new THREE.DirectionalLight(ACCENT, 0.45);   // 背后一道橙色轮廓光，呼应页面主色
+    scene.add(key, key.target, fill, rim);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.6 }));
+    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    let grid = null, gridKey = '';
+
+    /* ---------- 薄膜贴图：画布上下两端各 FH/Ltot 为横封条，与几何 UV 一一对应 ---------- */
+    function filmCanvas() { const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * Ltot / P.Wf); return c; }
+    function drawFilm(cv, front, label) {
+      const g = cv.getContext('2d'), W = cv.width, H = cv.height, fin = H * P.FH / Ltot;
+      const bg = g.createLinearGradient(0, 0, W, 0);
+      bg.addColorStop(0, '#dfe3e9'); bg.addColorStop(0.5, '#f4f5f7'); bg.addColorStop(1, '#dfe3e9');
+      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      [0, H - fin].forEach(y0 => {                    // 横封条：橙色热封区 + 横向压纹
+        g.fillStyle = '#e8641c'; g.fillRect(0, y0, W, fin);
+        for (let y = y0 + 3; y < y0 + fin - 2; y += 5) {
+          g.fillStyle = 'rgba(0,0,0,0.22)'; g.fillRect(0, y, W, 1.5);
+          g.fillStyle = 'rgba(255,255,255,0.16)'; g.fillRect(0, y + 2, W, 1);
+        }
+      });
+      g.fillStyle = 'rgba(255,107,26,0.9)';            // 袋身两端各一道细橙线
+      g.fillRect(0, fin + H * 0.035, W, 5); g.fillRect(0, H - fin - H * 0.035 - 5, W, 5);
+      if (front) {
+        const cy = H / 2;
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillStyle = '#5c6578'; g.font = '500 26px "JetBrains Mono", monospace';
+        g.fillText('NET WT', W / 2, cy - 70);
+        let fs = 110; g.font = `800 ${fs}px Archivo, sans-serif`;
+        const w = g.measureText(label).width;
+        if (w > W * 0.78) { fs *= W * 0.78 / w; g.font = `800 ${fs}px Archivo, sans-serif`; }
+        g.fillStyle = '#1a2130'; g.fillText(label, W / 2, cy + 6);
+        g.fillStyle = '#ff6b1a'; g.fillRect(W / 2 - 40, cy + fs * 0.55 + 6, 80, 5);
+      } else {
+        g.fillStyle = 'rgba(92,101,120,0.35)';         // 背面：几行浅灰"说明文字"
+        for (let i = 0; i < 9; i++) g.fillRect(W * 0.2, H * 0.36 + i * 18, W * (i % 3 === 2 ? 0.35 : 0.6), 6);
+      }
+    }
+    const cvF = filmCanvas(), cvB = filmCanvas();
+    const tF = new THREE.CanvasTexture(cvF), tB = new THREE.CanvasTexture(cvB);
+    [tF, tB].forEach(t => { t.encoding = THREE.sRGBEncoding; t.anisotropy = rdr.capabilities.getMaxAnisotropy(); });
+    let curLabel = null;
+    function setLabel(label, force) {
+      if (label === curLabel && !force) return;
+      curLabel = label; drawFilm(cvF, true, label); drawFilm(cvB, false);
+      tF.needsUpdate = tB.needsUpdate = true; dirty = true;
+    }
+    if (document.fonts) document.fonts.ready.then(() => { if (curLabel) setLabel(curLabel, true); });
+
+    /* ---------- 材质：头对头搭叠处端部压扁（与叠放查看器相同的顶点着色器改写） ---------- */
+    // 每个实例带 aEnd = (−y 端, +y 端) 模式：+1 压向桌面，−1 压向顶面，0 不变
+    const uEnd = { value: new THREE.Vector4(0.6, 0.12, 0.5, P.T / 2) };   // 压扁起点 |y|、过渡长度、压扁比例、半厚（模型单位）
+    function addLift(m, key) {
+      m.onBeforeCompile = sh => {
+        sh.uniforms.uEnd = uEnd;
+        sh.vertexShader = 'attribute vec2 aEnd;\nuniform vec4 uEnd;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+          `#include <begin_vertex>
+      { float md = transformed.y > 0.0 ? aEnd.y : aEnd.x;
+        float w = smoothstep(uEnd.x - uEnd.y, uEnd.x, abs(transformed.y)) * abs(md), k = 1.0 - uEnd.z * w;
+        if (md > 0.5) transformed.z = -uEnd.w + (transformed.z + uEnd.w) * k;
+        else if (md < -0.5) transformed.z = uEnd.w - (uEnd.w - transformed.z) * k; }`);
+      };
+      m.customProgramCacheKey = () => key;
+      return m;
+    }
+    const film = (map, k) => addLift(new THREE.MeshPhysicalMaterial({ map, roughness: 0.4, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.25, side: THREE.DoubleSide }), k);
+    const mFront = film(tF, 'zr-f'), mBack = film(tB, 'zr-b'), mSeal = film(tB, 'zr-s'), mFinF = film(tF, 'zr-ff'), mFinB = film(tB, 'zr-fb');
+    const mDepth = addLift(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), 'zr-d');
+
+    /* ---------- 单包几何（模型单位：袋身长 = 1，正面朝上、背面贴地的重力形变） ---------- */
+    function mergeGeos(parts) {          // parts: [{ g, m }] → 一个带材质分组的几何体
+      const pos = [], nor = [], uv = [], idx = [], groups = [];
+      let base = 0;
+      parts.forEach(({ g, m }) => {
+        const p = g.attributes.position, n = g.attributes.normal, u = g.attributes.uv, ix = g.index.array, st = idx.length;
+        for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i)); uv.push(u.getX(i), u.getY(i)); }
+        for (let i = 0; i < ix.length; i++) idx.push(ix[i] + base);
+        groups.push([st, ix.length, m]); base += p.count;
+      });
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      g.setIndex(idx); groups.forEach(([s, c, m]) => g.addGroup(s, c, m));
+      return g;
+    }
+    const D = -1, slices = makeSlices(D);
+    const gBody = buildBody(slices), gSeal = buildBackSeal(slices, 0);
+    // 封口条：把"根部枢轴 + 下垂/上翘"烘焙进几何。相邻两包一包封口压下、一包封口抬起，搭叠处才不会互相穿插
+    function finGeo(dir) {               // dir = +1 下垂（朝桌面），-1 上翘
+      const parts = [];
+      [1, -1].forEach(sign => {
+        const m = new THREE.Matrix4().makeTranslation(0, sign * P.Lb / 2, D * P.sag * P.T / 2)
+          .multiply(new THREE.Matrix4().makeRotationX(sign * P.droop * (dir > 0 ? D : -D * 1.6)));
+        const a = buildFin(sign, 1); a.applyMatrix4(m); parts.push({ g: a, m: 0 });
+        const b = buildFin(sign, -1); b.applyMatrix4(m); parts.push({ g: b, m: 1 });
+        const c = buildBackSeal(null, sign); c.applyMatrix4(m); parts.push({ g: c, m: 1 });
+      });
+      return mergeGeos(parts);
+    }
+    const gFinDown = finGeo(1), gFinUp = finGeo(-1);
+
+    /* ---------- 实例化网格（按需扩容） ---------- */
+    const white = new THREE.Color(1, 1, 1), amber = lin(AMBER);
+    let cap = 0, iBody, iSeal, iFinD, iFinU;
+    function ensureCap(n) {
+      if (n <= cap) return;
+      cap = Math.min(MAXN, Math.max(n, cap * 2, 64));
+      [iBody, iSeal, iFinD, iFinU].forEach(m => { if (m) { scene.remove(m); m.dispose(); } });
+      const mk = (geo, mats) => {
+        geo.setAttribute('aEnd', new THREE.InstancedBufferAttribute(new Float32Array(cap * 2), 2));
+        const m = new THREE.InstancedMesh(geo, mats, cap);
+        m.castShadow = m.receiveShadow = true; m.frustumCulled = false; m.customDepthMaterial = mDepth;
+        for (let i = 0; i < cap; i++) m.setColorAt(i, white);
+        m.count = 0; scene.add(m); return m;
+      };
+      iBody = mk(gBody, [mFront, mBack]); iSeal = mk(gSeal, mSeal);
+      iFinD = mk(gFinDown, [mFinF, mFinB]); iFinU = mk(gFinUp, [mFinF, mFinB]);
+    }
+
+    /* ---------- 包络虚线框 + 尺寸线 ---------- */
+    const dimMat = new THREE.LineBasicMaterial({ color: lin(ACCENT), toneMapped: false });
+    const extMat = new THREE.LineBasicMaterial({ color: lin(0x8a95a8), transparent: true, opacity: 0.5, toneMapped: false });
+    const envMat = new THREE.LineDashedMaterial({ color: lin(0x8a95a8), transparent: true, opacity: 0.45, toneMapped: false, dashSize: 10, gapSize: 8 });
+    const dimLines = new THREE.LineSegments(new THREE.BufferGeometry(), dimMat);
+    const extLines = new THREE.LineSegments(new THREE.BufferGeometry(), extMat);
+    const envLines = new THREE.LineSegments(new THREE.BufferGeometry(), envMat);
+    scene.add(dimLines, extLines, envLines);
+    const labelBox = document.getElementById('dimLabels'), note = document.getElementById('stackNote');
+    const dims = [0, 1, 2].map(() => { const el = document.createElement('span'); el.className = 'dim-label'; el.style.display = 'none'; labelBox.appendChild(el); return { el }; });
+    function setLines(l, arr) {
+      l.geometry.dispose(); l.geometry = new THREE.BufferGeometry();
+      l.geometry.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+    }
+
+    /* ---------- 码放 ---------- */
+    const box = { x: 1, y: 1, z: 1, m: 1 };    // 包络（mm）：x = 排列方向 A₁，z = B₁，y = H₁；m = 尺寸线外扩量
+    const dummy = new THREE.Object3D();
+    function layout(st, r) {
+      const a = st.pouchA, b = st.pouchB, c = st.pouchC, per = st.perLayer;
+      const top = st.arrangement === 'top-to-top';
+      const sx = b / P.Wf, sy = a / Ltot, sz = c / P.T;          // 模型单位 → mm（a 含两端封口）
+      const along = top ? a : b, ov = Math.min(OVERLAP, along * 0.35), pitch = along - ov;
+      uEnd.value.set(P.Lb / 2 + P.FH - ov / sy, 0.12, 0.5, P.T / 2);   // 压扁区：从封口齿尖向内 ov 处开始
+      ensureCap(Math.min(MAXN, Math.ceil(st.totalCount)));
+      let n = 0, nD = 0, nU = 0;
+      for (let layer = 0; layer < r.totalLayers && n < cap; layer++) {
+        const isRem = layer === r.fullLayers && r.remainder > 0;
+        const cnt = isRem ? r.remainder : per, col = isRem ? amber : white;
+        for (let k = 0; k < cnt && n < cap; k++) {
+          const flip = top && k % 2 === 1;                          // 头对头：相邻两包封口相对
+          dummy.position.set((k - (cnt - 1) / 2) * pitch, c / 2 + layer * c, 0);
+          dummy.rotation.set(-Math.PI / 2, 0, (top ? Math.PI / 2 : 0) + (flip ? Math.PI : 0));
+          dummy.scale.set(sx, sy, sz);
+          dummy.updateMatrix();
+          // 上搭的包（头对头时为奇数位；肩靠肩时按棋盘格交替）：封口上翘；头对头时朝向邻包的一端压向顶面，被搭的一端压向桌面
+          const up = top ? k % 2 === 1 : (k + layer) % 2 === 1;
+          let eNeg = 0, ePos = 0;
+          if (top) {
+            const md = up ? -1 : 1, plusFacesPrev = !flip;          // 未翻转时局部 +y 端朝世界 −x（朝 k−1 的邻包）
+            if (k > 0)       { if (plusFacesPrev) ePos = md; else eNeg = md; }
+            if (k < cnt - 1) { if (plusFacesPrev) eNeg = md; else ePos = md; }
+          }
+          [iBody, iSeal].forEach(m => { m.setMatrixAt(n, dummy.matrix); m.setColorAt(n, col); m.geometry.attributes.aEnd.setXY(n, eNeg, ePos); });
+          const f = up ? iFinU : iFinD, j = up ? nU++ : nD++;
+          f.setMatrixAt(j, dummy.matrix); f.setColorAt(j, col); f.geometry.attributes.aEnd.setXY(j, eNeg, ePos);
+          n++;
+        }
+      }
+      iBody.count = iSeal.count = n; iFinD.count = nD; iFinU.count = nU;
+      [iBody, iSeal, iFinD, iFinU].forEach(m => {
+        m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; m.geometry.attributes.aEnd.needsUpdate = true;
+      });
+      note.textContent = st.totalCount > MAXN
+        ? (st.lang === 'zh' ? `仅绘制前 ${MAXN} 包` : `Showing first ${MAXN} pouches`) : '';
+
+      // 包络 = 整层宽 × 进深 × 层数×c（正常输入下与 A₁ × B₁ × H₁ 完全相等）
+      const X = (per - 1) * pitch + along, Z = top ? b : a, Y = r.totalLayers * c, R = Math.max(X, Y, Z);
+      const mg = R * 0.07 + 8, tk = mg * 0.3;
+      Object.assign(box, { x: X, y: Y, z: Z, m: mg });
+      const V = (x, y, z) => new THREE.Vector3(x, y, z);
+      const spec = [
+        { p0: V(-X / 2, 0, Z / 2 + mg), p1: V(X / 2, 0, Z / 2 + mg), tick: V(0, 0, tk), txt: `A₁ ${r.A1.toLocaleString()}`,
+          ext: [[V(-X / 2, 0, Z / 2), V(-X / 2, 0, Z / 2 + mg + tk)], [V(X / 2, 0, Z / 2), V(X / 2, 0, Z / 2 + mg + tk)]] },
+        { p0: V(X / 2 + mg, 0, -Z / 2), p1: V(X / 2 + mg, 0, Z / 2), tick: V(tk, 0, 0), txt: `B₁ ${r.B1.toLocaleString()}`, at: V(X / 2 + mg + tk * 1.6, 0, 0),
+          ext: [[V(X / 2, 0, -Z / 2), V(X / 2 + mg + tk, 0, -Z / 2)], [V(X / 2, 0, Z / 2), V(X / 2 + mg + tk, 0, Z / 2)]] },
+        { p0: V(-X / 2 - mg, 0, Z / 2), p1: V(-X / 2 - mg, Y, Z / 2), tick: V(tk, 0, 0), txt: `H₁ ${r.H1.toLocaleString()}`,
+          ext: [[V(-X / 2, 0, Z / 2), V(-X / 2 - mg - tk, 0, Z / 2)], [V(-X / 2, Y, Z / 2), V(-X / 2 - mg - tk, Y, Z / 2)]] }
+      ];
+      const dl = [], el = [], seg = (arr, p, q) => arr.push(p.x, p.y, p.z, q.x, q.y, q.z);
+      spec.forEach((s, i) => {
+        seg(dl, s.p0, s.p1);
+        [s.p0, s.p1].forEach(p => seg(dl, p.clone().sub(s.tick), p.clone().add(s.tick)));
+        s.ext.forEach(([p, q]) => seg(el, p, q));
+        Object.assign(dims[i], { p0: s.p0, p1: s.p1, pm: s.at || s.p0.clone().lerp(s.p1, 0.5), side: !!s.at });
+        dims[i].el.textContent = s.txt;
+      });
+      setLines(dimLines, dl); setLines(extLines, el);
+      const eg = new THREE.EdgesGeometry(new THREE.BoxGeometry(X, Y, Z)); eg.translate(0, Y / 2, 0);
+      envLines.geometry.dispose(); envLines.geometry = eg; envLines.computeLineDistances();
+      envMat.dashSize = R / 60; envMat.gapSize = R / 90;
+
+      // 灯光 / 阴影 / 地面网格随垛形尺度缩放
+      ground.scale.set(R * 12, R * 12, 1);
+      key.position.set(R * 0.8, R * 2.2, R * 1.3); key.target.position.set(0, Y / 2, 0);
+      Object.assign(key.shadow.camera, { left: -R * 1.2, right: R * 1.2, top: R * 1.2, bottom: -R * 1.2, near: R * 0.1, far: R * 6 });
+      key.shadow.camera.updateProjectionMatrix();
+      fill.position.set(-R * 2, R, -R * 0.5);
+      rim.position.set(-R * 0.6, R * 0.8, -R * 2);
+      const p10 = Math.pow(10, Math.floor(Math.log10(R / 6)));
+      const step = [1, 2, 5, 10].map(k => k * p10).find(v => v >= R / 6), size = step * Math.ceil(R * 2 / step) * 2;
+      if (step + '|' + size !== gridKey) {
+        if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+        grid = new THREE.GridHelper(size, size / step, lin(0x3a4657), lin(0x1f2836));
+        grid.material.transparent = true; grid.material.opacity = 0.6; grid.material.toneMapped = false;
+        grid.position.y = -0.5; scene.add(grid); gridKey = step + '|' + size;
+      }
+      dirty = true;
+    }
+
+    /* ---------- 机位：按包络 + 尺寸线自动取景 ---------- */
+    const DIRS = { iso: [0.78, 0.62, 1.0], front: [0, 0.16, 1], side: [1, 0.16, 0], top: [0, 1, 0.0001] };
+    let view = 'iso', anim = null;
+    function fitPose(dir) {
+      const t = new THREE.Vector3(0, box.y / 2, 0), pts = [];
+      for (const x of [-box.x / 2 - box.m, box.x / 2 + box.m * 2.2]) for (const y of [0, box.y]) for (const z of [-box.z / 2, box.z / 2 + box.m])
+        pts.push(new THREE.Vector3(x, y, z));
+      const d0 = dir.clone().normalize(), p0 = cam.position.clone(), q0 = cam.quaternion.clone();
+      const tanH = Math.tan(cam.fov * Math.PI / 360), right = new THREE.Vector3(), up = new THREE.Vector3();
+      let d = Math.hypot(box.x, box.y, box.z) * 2;
+      for (let it = 0; it < 8; it++) {      // 迭代：投影包围点 → 平移目标点使其在画面居中，再缩放距离使其占满画面 86%
+        cam.position.copy(d0).multiplyScalar(d).add(t); cam.lookAt(t); cam.updateMatrixWorld();
+        let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+        pts.forEach(p => { const q = p.clone().project(cam); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); });
+        right.setFromMatrixColumn(cam.matrixWorld, 0); up.setFromMatrixColumn(cam.matrixWorld, 1);
+        t.addScaledVector(right, (x0 + x1) / 2 * d * tanH * cam.aspect).addScaledVector(up, (y0 + y1) / 2 * d * tanH);
+        d *= Math.max((x1 - x0) / 2, (y1 - y0) / 2) / 0.86;
+      }
+      cam.position.copy(p0); cam.quaternion.copy(q0); cam.updateMatrixWorld();
+      return { p: d0.multiplyScalar(d).add(t), t, d };
+    }
+    const bar = document.getElementById('viewBar');
+    const syncBar = () => bar.querySelectorAll('[data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === view));
+    function go(name, instant) {
+      if (name) { view = name; syncBar(); }
+      const dir = name ? new THREE.Vector3(...DIRS[name]) : cam.position.clone().sub(ctrl.target);
+      const { p, t, d } = fitPose(dir), R = Math.hypot(box.x, box.y, box.z) / 2;
+      scene.fog.near = d + R * 1.2; scene.fog.far = d + R * 4;
+      if (instant) { cam.position.copy(p); ctrl.target.copy(t); anim = null; dirty = true; return; }
+      const ps = cam.position.clone(), ts = ctrl.target.clone(), st = performance.now();
+      anim = () => {
+        const k = Math.min(1, (performance.now() - st) / 550), e = 1 - Math.pow(1 - k, 3);
+        cam.position.lerpVectors(ps, p, e); ctrl.target.lerpVectors(ts, t, e); if (k >= 1) anim = null;
+      };
+    }
+    bar.querySelectorAll('[data-cam]').forEach(b => b.addEventListener('click', () => go(b.dataset.cam)));
+    const spinBtn = document.getElementById('spinBtn');
+    spinBtn.addEventListener('click', () => { ctrl.autoRotate = !ctrl.autoRotate; spinBtn.classList.toggle('on', ctrl.autoRotate); if (ctrl.autoRotate) { view = null; syncBar(); } });
+    ctrl.addEventListener('start', () => { view = null; syncBar(); anim = null; });
+    ctrl.addEventListener('change', () => { dirty = true; });
+
+    /* ---------- 尺寸标注跟随投影 ---------- */
+    function placeLabels() {
+      const w = stage.clientWidth, h = stage.clientHeight, look = ctrl.target.clone().sub(cam.position).normalize();
+      dims.forEach(dm => {
+        if (!dm.pm) return;
+        const a = dm.p0.clone().project(cam), b = dm.p1.clone().project(cam), m = dm.pm.clone().project(cam);
+        const along = Math.abs(dm.p1.clone().sub(dm.p0).normalize().dot(look));          // 尺寸线几乎正对镜头 = 端视，不标
+        const show = along < 0.85 && Math.hypot((b.x - a.x) * w / 2, (b.y - a.y) * h / 2) > (dm.side ? 10 : 36) && m.z < 1;
+        dm.el.style.display = show ? '' : 'none';
+        if (!show) return;
+        const ew = dm.el.offsetWidth, eh = dm.el.offsetHeight;               // 标注夹在画布内，窄屏也不被裁掉
+        const x = Math.max(2, Math.min(w - ew - 2, (m.x + 1) / 2 * w - (dm.side ? 0 : ew / 2)));
+        const y = Math.max(2, Math.min(h - eh - 2, (1 - m.y) / 2 * h - eh / 2));
+        dm.el.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    }
+
+    function resize() {
+      const w = stage.clientWidth, h = stage.clientHeight;
+      if (!w || !h) return;
+      rdr.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix();
+      if (ready) go(null, true);
+      dirty = true;
+    }
+    new ResizeObserver(resize).observe(stage);
+    resize();
+
+    (function loop() {
+      requestAnimationFrame(loop);
+      if (anim) { anim(); dirty = true; }
+      ctrl.update();
+      if (dirty) { rdr.render(scene, cam); placeLabels(); dirty = false; }
+    })();
+
+    const fmtWeight = g => g >= 1000 ? `${+(g / 1000).toFixed(2)} kg` : `${Math.round(g)} g`;
+    window.__stack3d = () => ({ n: iBody.count, nD: iFinD.count, nU: iFinU.count, box: { ...box }, view, uEnd: uEnd.value.toArray(),
+      x: Array.from({ length: iBody.count }, (_, i) => { const m = new THREE.Matrix4(); iBody.getMatrixAt(i, m); return +new THREE.Vector3().setFromMatrixPosition(m).x.toFixed(2); }) });
+
+    return {
+      update(st, r) {
+        setLabel(fmtWeight(st.pouchWeight));
+        layout(st, r);
+        if (!ready) { ready = true; go('iso', true); } else go(null, false);   // 参数变化：保持当前视角方向，只重新取景
+      }
+    };
+  })();
+
+  // =========== SVG Stack Rendering (2D fallback) ===========
   // Draws pillow pouches in front-view with:
   //   - Horizontal overlap (~18mm) between adjacent pouches in a layer (visual only)
   //   - Vertical overlap between layers (pillow stacking compression)
   //   - Remainder layer placed on TOP, centered horizontally
   // Matches the engineering drawing style: each pouch is a lens/almond shape with
   // vertical sealing tails at both ends.
-  function renderStack(result) {
+  function renderStackSvg(result) {
     const { pouchA, pouchB, pouchC, arrangement, perLayer } = state;
     const { fullLayers, remainder } = result;
     
@@ -1585,7 +2236,7 @@
     infoText.textContent = msg;
     
     // Stack diagram
-    renderStack(result);
+    if (Stack3D) Stack3D.update(state, result); else renderStackSvg(result);
     
     // Language
     applyLanguage();
@@ -1670,6 +2321,13 @@
     });
     render();
   });
+  
+  if (!Stack3D) {
+    document.getElementById('stackStage').style.display = 'none';
+    document.getElementById('viewBar').style.display = 'none';
+    document.getElementById('stackHint').style.display = 'none';
+    document.getElementById('stackSvg').style.display = 'block';
+  }
   
   // Timestamp
   const now = new Date();
