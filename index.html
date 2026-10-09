@@ -1038,8 +1038,8 @@
       <h2 data-zh="袋中袋<br>方案<span class=&quot;accent&quot;>速算器</span>" data-en="Bag-in-Bag<br>Solution <span class=&quot;accent&quot;>Calculator</span>">
         袋中袋<br>方案<span class="accent">速算器</span>
       </h2>
-      <p data-zh="输入小袋规格与堆叠配置，工程公式驱动输出垛型尺寸、空袋规格、产能与机型推荐。基于正远BIB产线实测数据。" data-en="Input pouch spec and stacking config. Engineering-formula driven output: stack dimensions, empty bag spec, capacity and machine match — based on Zengran BIB line field data.">
-        输入小袋规格与堆叠配置，工程公式驱动输出垛型尺寸、空袋规格、产能与机型推荐。基于正远BIB产线实测数据。
+      <p data-zh="输入小袋规格与堆叠配置，工程公式驱动输出垛型尺寸、空袋规格、产能与机型推荐。基于BIB产线实测数据。" data-en="Input pouch spec and stacking config. Engineering-formula driven output: stack dimensions, empty bag spec, capacity and machine match — based on BIB line field data.">
+        输入小袋规格与堆叠配置，工程公式驱动输出垛型尺寸、空袋规格、产能与机型推荐。基于BIB产线实测数据。
       </p>
     </div>
     <div class="title-meta">
@@ -1335,7 +1335,7 @@
       <!-- Info box -->
       <div class="info-box" id="infoBox">
         <strong data-zh="方案提示：" data-en="Solution Note: ">方案提示：</strong>
-        <span id="infoText">当前方案匹配正远VBIB-120设计产能。</span>
+        <span id="infoText">当前方案匹配VBIB-120设计产能。</span>
       </div>
       
     </section>
@@ -2230,8 +2230,8 @@
         : `High count per bag (${state.totalCount}) — machine has capacity headroom. Buffer plate recommended for stable rhythm.`;
     } else {
       msg = lang === 'zh'
-        ? `当前方案 ${result.bagWeight.toFixed(0)}kg 大袋匹配正远${machine.model.split(' /')[0]}设计产能。空袋尺寸 ${result.A2}×${result.B2}×${result.H2}mm 可直接报价制袋厂。`
-        : `Current ${result.bagWeight.toFixed(0)}kg bag matches Zengran ${machine.model.split(' /')[0]} design capacity. Empty bag spec ${result.A2}×${result.B2}×${result.H2}mm can be directly quoted to bag supplier.`;
+        ? `当前方案 ${result.bagWeight.toFixed(0)}kg 大袋匹配${machine.model.split(' /')[0].replace('ZR-', '')}设计产能。空袋尺寸 ${result.A2}×${result.B2}×${result.H2}mm 可直接报价制袋厂。`
+        : `Current ${result.bagWeight.toFixed(0)}kg bag matches ${machine.model.split(' /')[0].replace('ZR-', '')} design capacity. Empty bag spec ${result.A2}×${result.B2}×${result.H2}mm can be directly quoted to bag supplier.`;
     }
     infoText.textContent = msg;
     
