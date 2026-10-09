@@ -62,7 +62,7 @@ Empty (Woven): A' = A − (n−1) × 18
 
 ## Designed by / 设计者
 
-**景电伟 (Leo)** · [@yangcong2828](https://github.com/yangcong2828)
+**景 (Leo)** · [@yangcong2828](https://github.com/yangcong2828)
 
 Personal project. 个人项目。
 
