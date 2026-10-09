@@ -62,10 +62,9 @@ Empty (Woven): A' = A − (n−1) × 18
 
 ## Designed by / 设计者
 
-**Hefei Zengran Intelligent Packaging Technology Co., Ltd**  
-合肥正远智能包装科技有限公司
+**景电伟 (Leo)** · [@yangcong2828](https://github.com/yangcong2828)
 
-Specialized in BIB secondary packaging machinery, VFFS systems, and rotary pre-made bag machines for sugar, salt, flour, seeds, and detergent industries.
+Personal project. 个人项目。
 
 ---
 
